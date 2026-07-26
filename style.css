@@ -1,0 +1,236 @@
+/* =====================================================
+   Personal site — style.css
+   Deliberately simple. Looks like a person made it,
+   because a person did.
+   ===================================================== */
+
+:root {
+  --bg: #FFFFFF;
+  --text: #1A1A1A;
+  --muted: #666666;
+  --line: #DDDDDD;
+  --link: #0B5394;      /* classic honest blue */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0 auto;
+  max-width: 660px;          /* narrow column = easy to read fast */
+  padding: 0 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* ---------- Links ---------- */
+a { color: var(--link); }
+a:hover { color: #063a68; }
+a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+/* ---------- Navigation ---------- */
+header {
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0 14px;
+  margin-bottom: 36px;
+}
+
+nav {
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 22px;
+}
+nav a { text-decoration: none; color: var(--muted); }
+nav a:hover { color: var(--text); }
+nav a.active { color: var(--text); font-weight: 600; }
+
+/* ---------- Headings & text ---------- */
+h1 {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 40px 0 10px;
+}
+
+.tagline {
+  color: var(--muted);
+  margin: 0 0 32px;
+}
+
+.meta {
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.note { color: var(--muted); }
+
+/* ---------- Homepage project list ---------- */
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.project-list li {
+  margin-bottom: 18px;
+}
+.project-list li a { font-weight: 600; }
+.project-list .meta { margin-left: 8px; }
+.project-list p { margin: 4px 0 0; }
+
+/* ---------- Projects overview (cards) ---------- */
+.project-cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.project-cards li { margin-bottom: 16px; }
+
+.card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 18px 20px;
+  text-decoration: none;
+  color: var(--text);
+}
+.card:hover {
+  border-color: var(--link);
+  color: var(--text);
+}
+.card h2 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  color: var(--link);
+}
+.card .meta { display: block; margin-bottom: 8px; }
+.card p { margin: 0 0 10px; }
+.card-more {
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: var(--link);
+}
+
+/* ---------- Card thumbnails ---------- */
+.card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.card-thumb {
+  flex: 0 0 130px;
+  width: 130px;
+  height: 95px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.card-body { flex: 1; min-width: 0; }
+
+@media (max-width: 560px) {
+  .card { flex-direction: column; }
+  .card-thumb { width: 100%; height: 150px; flex: none; }
+}
+
+/* ---------- Project detail page ---------- */
+.breadcrumb {
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  margin: 0 0 24px;
+}
+.breadcrumb a { text-decoration: none; color: var(--muted); }
+.breadcrumb a:hover { color: var(--text); }
+
+main > .meta { display: block; margin: -2px 0 8px; }
+
+main img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+}
+
+/* ---------- Figures and captions ---------- */
+figure {
+  margin: 28px 0;
+}
+figure img {
+  display: block;
+}
+figcaption {
+  font-family: system-ui, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* ---------- Quotes ---------- */
+blockquote {
+  margin: 20px 0;
+  padding: 2px 0 2px 18px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+  font-style: italic;
+}
+blockquote q { quotes: none; }
+
+.portrait {
+  float: right;
+  width: 180px;
+  margin: 4px 0 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+@media (max-width: 560px) {
+  .portrait { float: none; width: 100%; margin: 0 0 16px; }
+}
+
+/* ---------- Writing page ---------- */
+.article-list {
+  list-style: none;
+  padding: 0;
+}
+.article-list li { margin-bottom: 12px; }
+.article-list .meta { margin-left: 8px; }
+
+/* ---------- Footer ---------- */
+footer {
+  border-top: 1px solid var(--line);
+  margin-top: 56px;
+  padding: 14px 0 32px;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+/* ---------- Wide block (breaks out of the text column) ---------- */
+.wide {
+  width: min(1100px, calc(100vw - 40px));
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.exp {
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+  margin-top: 36px;
+}
+.exp:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+.exp h2 { margin-bottom: 2px; }
+.exp h3 { font-size: 1rem; margin-top: 28px; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+  body { font-size: 17px; }
+  h1 { font-size: 1.6rem; }
+}

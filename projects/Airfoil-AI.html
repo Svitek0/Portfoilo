@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airfoil AI — Martin Svítek</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="../projects.html" class="active">Projects</a>
+    <a href="../experiences.html">Experiences</a>
+  </nav>
+</header>
+
+<main>
+  <p class="breadcrumb"><a href="../projects.html">← All projects</a></p>
+
+  <h1>Airfoil AI</h1>
+  <p class="meta">2026 · Deep learning, aerodynamics, Python, Streamlit</p>
+
+  <h2>What it is</h2>
+  <p>
+    A web app that predicts the flow around a 2D airfoil in under a second. Instead
+    of running a CFD simulation, a neural network trained on 800 RANS simulations
+    from the AirfRANS dataset predicts the pressure and velocity fields directly
+    from the geometry. You can set up the airfoil with NACA 4-digit sliders, upload
+    a coordinate file, or draw one by hand, and the app shows the pressure field,
+    velocity magnitude, streamlines, and a lift curve.
+  </p>
+  <p>
+    The core idea of replacing a CFD solver with a neural network comes from
+    Thuerey et al. (2020), and the training data is public. Airfoil AI brings three
+    very different inputs into one representation, computes lift from the predicted
+    fields, validates the whole thing against XFOIL, and gets it deployed. The most
+    useful part, in the end, was finding out where the model fails.
+  </p>
+
+  <h2>Try it</h2>
+  <p>
+    The app is embedded below. Streamlit Community Cloud puts free apps to sleep
+    when nobody is using them, so the first load can take a minute or two. Once it
+    wakes up, it runs normally.
+  </p>
+
+  <figure class="wide">
+  <div style="position:relative; cursor:pointer;" onclick="loadApp(this)">
+    <img src="../images/Airfoil-ai/webapp_ui.png"
+         alt="Airfoil AI user interface" style="width:100%; display:block;">
+    <span style="position:absolute; inset:0; display:flex; align-items:center;
+                 justify-content:center; background:rgba(0,0,0,.35);
+                 color:#fff; font-size:1.1rem;">▶ Load the live app</span>
+  </div>
+  <figcaption>Click to load the live app — the first start can take a minute.</figcaption>
+  </figure>
+  <script>
+  function loadApp(el) {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://airfoilai.streamlit.app/?embed=true';
+    iframe.title = 'Airfoil AI live app';
+    iframe.style.cssText = 'width:100%; height:680px; border:none;';
+    el.replaceWith(iframe);
+  }
+  </script>
+
+  <h2>How it works</h2>
+  <p>
+    <strong>Data and geometry.</strong> AirfRANS is a set of RANS simulations of
+    airfoils at different angles of attack and Reynolds numbers. Each solution is
+    an unstructured point cloud, so I interpolate pressure and velocity onto a
+    regular 128×128 grid around the profile. The airfoil shape enters the network
+    as a signed distance field on the same grid: every pixel stores its distance to
+    the surface, negative inside the profile. All three input modes end up in this
+    one representation, with the flow conditions added as extra channels.
+  </p>
+  <p>
+    <strong>Model.</strong> The network is a U-Net with a ResNet34 encoder from
+    segmentation-models-pytorch. It predicts pressure and the two velocity
+    components; velocity magnitude and streamlines are computed from those. Lift is
+    not a network output: the app samples the predicted pressure along the surface
+    and integrates it into a lift coefficient the classical way. The angle-of-attack
+    sweep repeats that from −5° to 15° and draws the whole lift curve, which would
+    otherwise mean a separate CFD run for every angle. Training ran on my GTX 1650
+    with 4&nbsp;GB of VRAM.
+  </p>
+  <p>
+   <!-- <strong>Validation against XFOIL.</strong> To check the model against something
+    trustworthy, I wrote a small wrapper that drives XFOIL as a subprocess, runs the
+    same profile through both tools and overlays the polars. The model ranks
+    airfoils almost perfectly (Spearman correlation around 0.99 on C<sub>l</sub>),
+    but it consistently underpredicts lift at higher angles of attack. The cause is
+    resolution: the suction peak at the leading edge, where a lot of the lift comes
+    from, is only a few pixels wide at 128×128 and the interpolation smears it flat.
+    Drag is worse, because a pressure-only C<sub>d</sub> misses viscous drag
+    completely, so don't use the model for anything efficiency-related.
+  </p>
+
+  <figure>
+    <img src="../images/Airfoil-ai/xfoil-overlay.png" alt="Lift curve comparison between the surrogate model and XFOIL">
+    <figcaption>Lift curves from the model and from XFOIL for the same profile: close at low angles, diverging towards stall.</figcaption>
+  </figure>
+
+  -->
+
+  <p>
+    <strong>Trained on airfoils, blind to everything else</strong> The model
+     has only ever seen airfoils, and it does not know that anything else
+      exists. Feed it a circle, a square or a triangle through the drawing
+    mode and it happily predicts an airfoil-like flow for all of them:
+    suction on top, stagnation at the front, a wake behind. The 
+    predictions look just as confident as for a real airfoil, which 
+     is exactly the dangerous part. The network interpolates inside its 
+    training distribution instead of solving physics, and it gives no
+    warning when the input leaves it. 
+  </p>
+
+  <figure>
+    <img src="../images/Airfoil-ai/ood_experiment.png" alt="ODD shapes prediction">
+    <figcaption>Predictions for out-of-distribution shapes: circles, squares, and triangles.</figcaption>
+  </figure>
+
+  <p>
+    <strong>Deployment.</strong> The app runs on Streamlit Community Cloud. The
+    repository only ships the trained weights and a small file with normalization
+    statistics, so the training dataset never has to leave my machine. The drawing
+    mode goes through the same pipeline as everything else: canvas strokes →
+    coordinates → SDF → prediction.
+  </p>
+
+  <h2>Key numbers</h2>
+  <ul>
+    <li>800 RANS simulations (AirfRANS), interpolated to 128×128 grids</li>
+    <li>U-Net with ResNet34 encoder, predicting pressure and velocity fields</li>
+    <li>Spearman correlation ≈ 0.99 on C<sub>l</sub> against XFOIL</li>
+    <li>Full lift curve (−5° to 15°) in a few seconds</li>
+    <li>Three input modes: NACA sliders, .dat upload, freehand drawing</li>
+  </ul>
+
+  <h2>What I learned</h2>
+  <p>
+    The biggest lesson came from the validation step. The predicted fields look
+    convincing and the correlation with XFOIL is excellent, and it would have been
+    easy to stop there. Only the direct comparison with XFOIL showed the
+    systematic error at high angles of attack, and chasing down the reason taught me
+    more aerodynamics than the training itself.
+  </p>
+
+  <p>
+    The second lesson is about what I can honestly call my own. The architecture is
+    off the shelf, the approach comes from a paper, and a good part of the code was
+    written with an AI assistant. So the real work is in the pipeline, validation and knowing the limits of the result.
+  </p>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="https://github.com/Svitek0/Airfoil-ai" target="_blank">Source code on GitHub</a>
+      — model, geometry pipeline, Streamlit app and the XFOIL validation scripts.
+    </li>
+    <!-- TODO: doplň URL nasazené appky -->
+    <li><a href="https://airfoilai.streamlit.app/" target="_blank">Live app on Streamlit</a>
+      — the same app as above, in its own tab.
+    </li>
+    <li><a href="https://arxiv.org/abs/2212.07564" target="_blank">AirfRANS dataset</a>
+      — the RANS dataset used for training.
+    </li>
+    <li><a href="https://arxiv.org/abs/1810.08217" target="_blank">Thuerey et al. (2020)</a>
+      — the paper this project builds on.
+    </li>
+  </ul>
+</main>
+
+<footer>
+  <p>Last updated July 2026 · Klatovy, Czech Republic</p>
+</footer>
+
+</body>
+</html>

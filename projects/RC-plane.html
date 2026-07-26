@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC plane — Martin Svítek</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="../projects.html" class="active">Projects</a>
+    <a href="../experiences.html">Experiences</a>
+  </nav>
+</header>
+
+<main>
+  <p class="breadcrumb"><a href="../projects.html">← All projects</a></p>
+
+  <h1>RC Plane</h1>
+  <p class="meta">2026 · School year project · Aerodynamics, CAD, electronics, firmware</p>
+
+<h2>What it is</h2>
+  <p>
+    A fixed-wing RC aircraft built from scratch as my school-year project — no kit,
+    no commercial flight controller. The project covers the whole development cycle:
+    aerodynamic analysis in XFOIL and XFLR5, geometric design of the wing and tail,
+    3D-printed construction, onboard electronics, and a custom radio link with
+    firmware for both the plane and the controller.
+  </p>
+  <p>
+    The aircraft has a 600&nbsp;mm wingspan, weighs 632&nbsp;g, and uses a NACA 4412
+    main wing, a carbon-fiber spine and spars, and 3D-printed ribs and tail surfaces.
+    The hand-built controller communicates with the plane over a 433&nbsp;MHz link.
+    All design decisions are documented in the technical report linked below.
+  </p>
+
+  <figure>
+    <img src="../images/RC-plane/IMG_2247.jpg" alt="The assembled RC aircraft">
+    <figcaption>The assembled airframe: carbon spine tube, 3D-printed ribs and tail, plywood fuselage plates.</figcaption>
+  </figure>
+
+  <h2>How it works</h2>
+  <p>
+    <strong>Aerodynamics.</strong> The main wing uses a cambered NACA 4412 airfoil and the
+    tail a symmetric NACA 0012, analysed at the low Reynolds numbers (80,000–110,000) where
+    RC models actually fly. I verified the whole configuration with a VLM1 simulation in
+    XFLR5. The neutral point came out at 51&nbsp;mm, the CG is placed at 41&nbsp;mm, giving
+    a static margin of 7.7&nbsp;% which is right inside the recommended 5–15&nbsp;% stability
+    window. Stall speed calculated from the measured mass is 11.1&nbsp;m/s, with a
+    12&nbsp;m/s cruise speed on top of it.
+  </p>
+
+  <figure>
+    <img src="../images/RC-plane/rozlozeni_tlaku_b.png" alt="XFLR5 pressure force distribution over the wing">
+    <figcaption>Aerodynamic force distribution from the VLM1 analysis — suction on the upper surface is the dominant source of lift.</figcaption>
+  </figure>
+
+  <p>
+    <strong>Structure.</strong> The fuselage is a square carbon composite tube; the wing is
+    a rib-and-spar sandwich with sixteen 3D-printed NACA 4412 ribs threaded onto two 6&nbsp;mm
+    carbon rods, covered with heat-shrink film. Ailerons and elevator are driven by three
+    MG90S metal-gear servos through mechanical pushrods.
+  </p>
+  <p>
+    <strong>Electronics and radio.</strong> Both the plane and the controller run on an
+    ESP32. The controller reads two joysticks through the 12-bit ADC, packs the values into
+    a 6-byte binary struct, and transmits them over an HC-12 module at 433&nbsp;MHz, 20 times
+    per second. The receiver decodes the packet and maps it to PWM signals for the servos
+    and the 40&nbsp;A ESC driving the brushless motor. A fail-safe cuts the throttle and
+    centers all control surfaces if the link drops for more than a second. The controller
+    itself is a gutted old drone transmitter that I rebuilt around the ESP32.
+  </p>
+
+  <figure>
+    <img src="../images/RC-plane/IMG_2268.jpg" alt="Onboard electronics between the fuselage plates">
+    <figcaption>ESP32, HC-12, ESC and battery mounted between the plywood fuselage plates.</figcaption>
+  </figure>
+
+  <h2>Key numbers</h2>
+  <ul>
+    <li>Wingspan 600&nbsp;mm, wing area 0.078&nbsp;m², mass 632&nbsp;g</li>
+    <li>Static margin 7.7&nbsp;%, glide ratio 34.8 at cruise (XFLR5, VLM1)</li>
+    <li>Stall speed 11.1&nbsp;m/s, thrust-to-weight 0.78</li>
+    <li>Radio link: 433&nbsp;MHz, 20&nbsp;Hz update rate, fail-safe on link loss</li>
+    <li>~10 min estimated flight time on a 3S 1300&nbsp;mAh LiPo</li>
+  </ul>
+
+  <h2>What I learned</h2>
+  <p>
+    The biggest lesson came from a mistake. After assembly, the first version of the
+    3D-printed tail weighed 88&nbsp;g and shifted the center of gravity 35&nbsp;mm behind
+    the neutral point — the plane was statically unstable and would have been unflyable.
+    Diagnosing that meant actually understanding the difference between the neutral point
+    (pure geometry) and the CG (mass distribution), rather than just plugging numbers into
+    formulas. The fix was reprinting the tail at minimal infill and adding a small nose
+    ballast, bringing the static margin back into the safe range. Mass budgeting is now the
+    first thing I would do in any future design, not the last.
+  </p>
+  <p>
+    Beyond that, I learned how to run and interpret low-Reynolds simulations and know their limits
+    (why I used an inviscid method for the 3D analysis), how to design a binary radio
+    protocol and why a fail-safe is non-negotiable in anything that flies, and how to take
+    a project through a full engineering cycle — requirements, analysis, design,
+    manufacturing, debugging, and documentation — as one person.
+  </p>
+
+  <h2>Links &amp; downloads</h2>
+  <ul>
+    <li><a href="https://github.com/Svitek0/RP_Svitek" target="_blank">Source code on GitHub</a>
+      — firmware for both the transmitter and the receiver, STL models and wiring diagrams.
+    </li>
+    <li><a href="../files/Svitek_RP_ENG.pdf" target="_blank">Technical documentation ENG (PDF)</a>
+      — full calculations, model design, choice of materials, electrical schemes and software.
+    </li>
+    <li><a href="../files/Svitek_RP_CZE.pdf" target="_blank">Technical documentation CZE (PDF)</a>
+      — original Czech version.
+    </li>
+  </ul>
+</main>
+
+<footer>
+  <p>Last updated July 2026 · Klatovy, Czech Republic</p>
+</footer>
+
+</body>
+</html>
