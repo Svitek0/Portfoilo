@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket flight simulator — Martin Svítek</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/projects" class="active">Projects</a>
+    <a href="/experiences">Experiences</a>
+  </nav>
+</header>
+
+<main>
+  <p class="breadcrumb"><a href="/projects">← All projects</a></p>
+
+  <h1>Rocket flight simulator</h1>
+  <p class="meta">2026 · Physics simulation, numerical methods, Python, Streamlit</p>
+
+  <h2>What it is</h2>
+  <p>
+    An interactive simulator of a rocket's flight, built from scratch in Python.
+    You set the thrust, mass, fuel, burn time, launch angle, and drag, and the app
+    computes the full trajectory and shows the flight path, the velocity over time,
+    and the g-forces the rocket experiences. The point was to build the physics honestly, one force at a time, and watch how
+    each one changes the flight.
+  </p>
+
+  <h2>Try it</h2>
+  <p>
+    The app is embedded below. Streamlit Community Cloud puts free apps to sleep
+    when nobody is using them, so the first load can take a minute or two. Once it
+    wakes up, it runs normally.
+  </p>
+
+  <figure class="wide">
+  <div style="position:relative; cursor:pointer;" onclick="loadApp(this)">
+    <img src="/images/rocketsim/rocketsim_ui.png"
+         alt="Rocket flight simulator user interface" style="width:100%; display:block;">
+    <span style="position:absolute; inset:0; display:flex; align-items:center;
+                 justify-content:center; background:rgba(0,0,0,.35);
+                 color:#fff; font-size:1.1rem;">▶ Load the live app</span>
+  </div>
+  <figcaption>Click to load the live app — the first start can take a minute.</figcaption>
+  </figure>
+  <script>
+  function loadApp(el) {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://rocketsim.streamlit.app/?embed=true';
+    iframe.title = 'Rocket flight simulator live app';
+    iframe.style.cssText = 'width:100%; height:680px; border:none;';
+    el.replaceWith(iframe);
+  }
+  </script>
+
+  <h2>How it works</h2>
+  <p>
+    <strong>The method.</strong> The simulator integrates Newton's second law step
+    by step. At each moment it adds up the forces acting on the rocket, divides by
+    the rocket's mass to get its acceleration, and uses that to update the velocity
+    and position. Each step is a hundredth of a second at a time, from launch until the rocket
+    returns to the ground. This is numerical integration, the same idea behind most
+    physics simulation.
+  </p>
+
+  <p>
+    <strong>Building it in layers.</strong>
+    I didn't write the whole thing at once. I started with the simplest possible
+    case of an object in free fall and checked the result against something I
+    already knew from physics class: a stone dropped from 100 m should hit the
+    ground in about 4.5 seconds. Once that matched, I added the next force, verified
+    it the same way, and only then moved on. Thrust, then variable mass, then air
+    drag, then the second dimension. Each layer was a small program that I could check against a known result, and only when it worked did I add the next layer. This is how I built the full simulator.
+  </p>
+
+  <p>
+    <strong>The forces.</strong> Thrust pushes the rocket along its axis, but the
+    rocket loses mass as it burns fuel, so the same thrust accelerates it more and
+    more as it gets lighter — this is the heart of how rockets work. Gravity pulls
+    it down and weakens slightly with altitude. Air drag always opposes the motion,
+    grows with the square of speed, and fades as the air thins out higher up. A
+    checkbox turns drag on and off, which makes its effect impossible to miss:
+    without it, the rocket flies absurdly high; with it, the trajectory becomes
+    realistic.
+  </p>
+
+  <h2>What surprised me</h2>
+  <p>
+    Building the model in layers meant I could trust each piece — but the
+    combination produced behaviour I never explicitly programmed. On the way back
+    down, the rocket falls through thin air high up and picks up enormous speed,
+    and then the thickening air slows it down, exactly the way a
+    re-entering capsule behaves. On the g-force plot there is a strange double peak
+    during the burn: the rocket accelerates, then air drag catches up and briefly
+    wins as speed rises, then the falling mass and thinning air push the
+    acceleration back up. Neither of these was a feature I added. They emerged from
+    the physics.
+  </p>
+
+  <figure>
+    <img src="/images/rocketsim/gforce.png"
+         alt="G-force over time showing a double peak during the burn">
+    <figcaption>G-force over time. The double peak during the burn comes from the tug-of-war between thrust,
+       rising drag, and falling mass; the lone peak near the end is the rocket being slowed down by thickening air on the way back down.</figcaption>
+  </figure>
+
+  <h2>Key features</h2>
+  <ul>
+    <li>2D trajectory model built on step-by-step numerical integration</li>
+    <li>Variable mass, altitude-dependent gravity, exponential atmosphere model</li>
+    <li>Live plots: flight path, vertical velocity, and g-force over time</li>
+    <li>Toggle to compare flight with and without air drag</li>
+    <li>Interactive sliders for thrust, mass, fuel, burn time, and launch angle</li>
+  </ul>
+
+  <h2>What I learned</h2>
+  <p>
+    The main lesson from this project is that a simulation is only as trustworthy as your ability to
+    check it. Building in layers and testing each one against a result I already
+    knew was what kept the physics honest — it is easy to write code that produces
+    a plausible-looking curve and never notice it is wrong.
+  </p>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="https://github.com/Svitek0/raketa" target="_blank">Source code on GitHub</a>
+      — the full simulation source code.
+    </li>
+    <li><a href="https://rocketsim.streamlit.app/" target="_blank">Live app on Streamlit</a>
+      — the same app as above, in its own tab.
+    </li>
+  </ul>
+</main>
+
+<footer>
+  <p>Last updated July 2026 · Klatovy, Czech Republic</p>
+</footer>
+
+</body>
+</html>
