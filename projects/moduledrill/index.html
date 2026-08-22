@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ModuleDrill — Martin Svítek</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ac1a65267414426280f8b87066b7370b"}'></script><!-- End Cloudflare Web Analytics -->
+
+<body>
+
+<header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/projects" class="active">Projects</a>
+    <a href="/experience">Experience</a>
+  </nav>
+</header>
+
+<main>
+  <p class="breadcrumb"><a href="/projects">← All projects</a></p>
+
+  <h1>ModuleDrill</h1>
+  <p class="meta">2026 · JavaScript, reverse engineering, web development</p>
+
+  <h2>What it is</h2>
+  <p>
+    A free web app that runs timed digital SAT practice modules, built on College
+    Board's public question bank. It reproduces the structure of the real test:
+    27 Reading and Writing questions in 32 minutes, 22 Math questions in 35, in the
+    domain order the actual exam uses, with the interface and tools of Bluebook —
+    countdown clock, mark for review, answer eliminator, question navigator.
+  </p>
+  <p>
+    I built it while preparing for the SAT myself. I was doing sets of ten questions
+    and logging mistakes in a spreadsheet, which teaches you nothing about pacing,
+    and the only way to test a change in approach was to spend one of my six official
+    practice tests. The interesting part of the project turned out not to be the
+    interface but the constraints: the questions are copyrighted, there is no public
+    API, and most of the bank is unsafe to practise with.
+  </p>
+
+  <p><a href="https://moduledrill.com" target="_blank"><strong>moduledrill.com</strong></a> — free, no account, works in any browser.</p>
+
+  <figure class="wide">
+    <img src="/images/moduledrill/menu.png" alt="ModuleDrill home screen showing full test, single module and custom drill options">
+    <figcaption>The home screen. The green panel is the spoiler protection, on by default.</figcaption>
+  </figure>
+
+  <h2>The constraint that shaped it</h2>
+  <p>
+    <strong>No public API.</strong> College Board publishes a question bank for
+    teachers but documents no way to read it programmatically. I traced the network
+    calls their own site makes and found three undocumented endpoints that answer
+    without authentication and send <code>Access-Control-Allow-Origin: *</code>,
+    which means a browser on any domain can call them directly.
+  </p>
+  <p>
+    <strong>The content is not mine.</strong> The obvious build is to download all
+    3,300 questions and serve them from my own site. That is a mirror of someone
+    else's copyrighted work, and it is the version that gets taken down. So the app
+    ships with no question data at all: it is a single HTML page, and each visitor's
+    browser fetches questions from College Board directly and caches them in
+    IndexedDB. My hosting serves about 73&nbsp;KB of static files and never touches
+    a question. That decision drove everything else — no backend, no database, no
+    accounts, and as a side effect nothing to collect about anyone.
+  </p>
+  <p>
+    <strong>Most of the bank can hurt the student using it.</strong> This was the
+    finding that changed the project. College Board flags questions that are still
+    in active use on test forms, and roughly two thirds of the bank is flagged. Those
+    are exactly the questions that can appear on an official practice test a student
+    hasn't taken yet. Practising with them quietly burns the very thing they are
+    saving. Excluding them by default cut the usable pool from about 3,300 questions
+    to about 1,200 — two thirds of the app's apparent content removed on purpose.
+  </p>
+
+  <h2>Reconstructing the test</h2>
+  <p>
+    Drawing questions at random produces a set of questions, not a module. A real
+    Reading and Writing module runs through its domains in a fixed order — Craft and
+    Structure, then Information and Ideas, then Standard English Conventions, then
+    Expression of Ideas — and within each domain the skills appear in a set sequence
+    and climb in difficulty. Math is domain-mixed, roughly ascending in difficulty,
+    with the grid-in questions at the end. None of that is described by the API; I
+    worked it out from the metadata and from sitting the test.
+  </p>
+  <p>
+    It matters more than it sounds. Most students navigate a module by position:
+    skip ahead to the grammar questions, answer those first, come back for the
+    vocabulary. If the order is wrong, the app trains a strategy that doesn't
+    transfer. The first version sorted only by difficulty, and the person who
+    noticed was me, using it.
+  </p>
+
+  <figure>
+    <img src="/images/moduledrill/rw-question.png" alt="A Reading and Writing question in the split-pane layout with passage on the left">
+    <figcaption>Reading and Writing: passage left, question right, with the answer eliminator in the corner.</figcaption>
+  </figure>
+
+  <p>
+    Math questions arrive as MathML and their figures as inline SVG rather than
+    images, which is what lets the whole thing keep working with no connection.
+  </p>
+
+  <figure>
+    <img src="/images/moduledrill/math-question.png" alt="A Math question with a coordinate-plane figure and multiple choice options">
+    <figcaption>Math: the reference sheet and calculator sit in the top bar, as they do in Bluebook.</figcaption>
+  </figure>
+
+  <h2>Hosting</h2>
+  <p>
+    The whole site is static, so it runs on GitHub Pages for nothing: about
+    73&nbsp;KB of files, no server process, no database, nothing to scale. The domain
+    is registered through Cloudflare at cost, roughly $10 a year, which I pay myself
+    and which is the entire running cost of the project.
+  </p>
+  <p>
+    Cloudflare provides DNS only — the apex points straight at GitHub's addresses
+    with proxying deliberately turned off. Routing the traffic through Cloudflare
+    instead would stop GitHub from issuing the HTTPS certificate for the domain,
+    which is a surprisingly easy way to break a working deployment.
+  </p>
+
+  <h2>Results</h2>
+  <p>
+    The app deliberately does not produce a score out of 1600. The question bank is
+    a flat pool — not adaptive, not equated against a real form — so any scaled
+    number would be invented, and an invented score is worse than none when you are
+    deciding what to revise. It reports raw score and a breakdown by domain, skill
+    and difficulty instead, then every question missed with College Board's own
+    explanation.
+  </p>
+
+  <figure class="wide">
+    <img src="/images/moduledrill/results.png" alt="Results screen showing raw score and per-domain and per-skill breakdowns">
+    <figcaption>What you get instead of a 1600 scale score.</figcaption>
+  </figure>
+
+  <h2>Key numbers</h2>
+  <ul>
+    <li>~3,300 official questions reachable, ~1,200 usable once active ones are excluded</li>
+    <li>3 network requests on first load; a full test fetches 98 questions, then nothing</li>
+    <li>~73&nbsp;KB of static hosting, no backend, no database, no accounts</li>
+  </ul>
+
+  <h2>What I learned</h2>
+  <p>
+    The engineering lesson is that the constraints produced the design. "I must not
+    redistribute their content" is what forced the fetch-in-the-browser
+    architecture, and that in turn gave the app its hosting cost, its privacy
+    properties and its offline behaviour for free. The requirement I would have
+    treated as an obstacle was the thing that made the design good.
+  </p>
+  <p>
+    The other lesson is about testing. The worst bug in the project was a MathML
+    element that was dropped from the current standard, so Chrome and Safari render
+    nothing for it at all — no error, no fallback. College Board's content still
+    uses it for brackets, in 44% of the math questions, so
+    <code>V(x) = 11x(x&nbsp;-&nbsp;1)</code> displayed as <code>Vx = 11xx - 1</code>
+    and the question became unanswerable while still looking like a question. The
+    automated checks all passed, because they verified that the math rendered and
+    never that it rendered correctly. That one, a wrong question order, and a timer that
+    trapped you in a dialog loop when it expired were all found by using the app for
+    its actual purpose rather than by the tests I had written.
+  </p>
+  <p>
+    On authorship: a good part of the code was written with an AI assistant. I
+    decided what it should do, tested it, found the bugs above, and made the calls
+    that shaped it — excluding the active questions, refusing the fake score, keeping
+    the questions off my own server. That is where the actual work is.
+  </p>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="https://moduledrill.com" target="_blank">moduledrill.com</a>
+      — the live app.
+    </li>
+    <li><a href="https://github.com/Svitek0/moduledrill" target="_blank">Source code on GitHub</a>
+      — the app is a single HTML page, plus a list of question identifiers and the
+      script that builds an offline bundle.
+    </li>
+    <li><a href="https://moduledrill.com/about/" target="_blank">About page</a>
+      — how it is funded, what it collects, and what it does badly.
+    </li>
+    <li><a href="https://satsuitequestionbank.collegeboard.org/" target="_blank">SAT Suite Question Bank</a>
+      — College Board's own tool, the source of every question.
+    </li>
+  </ul>
+
+  <p class="meta">
+    Not affiliated with, endorsed by, or connected to College Board. SAT and Bluebook
+    are their trademarks, used here to describe what the tool is for.
+  </p>
+</main>
+
+<footer>
+  <p>Last updated August 2026 · Klatovy, Czech Republic</p>
+</footer>
+
+</body>
+</html>
