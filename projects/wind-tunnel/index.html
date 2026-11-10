@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wind tunnel — Martin Svítek</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ac1a65267414426280f8b87066b7370b"}'></script><!-- End Cloudflare Web Analytics -->
+
+<body>
+
+<header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/projects" class="active">Projects</a>
+    <a href="/experience">Experience</a>
+  </nav>
+</header>
+
+<main>
+  <p class="breadcrumb"><a href="/projects">← All projects</a></p>
+
+  <h1>Wind tunnel</h1>
+  <p class="meta">2026 – 2027 · Graduation project, in progress · Aerodynamics, CAD, electronics</p>
+
+  <h2>What it is</h2>
+  <p>
+    A small wind tunnel, about 1&nbsp;m long, that I am designing and building as my
+    graduation project. Its main job is flow visualization: smoke streaks running past
+    an airfoil in the test section, watched through an acrylic window, together with
+    a basic pressure measurement from a sensor.
+  </p>
+  <p>
+    The tunnel is flat on purpose. Its height stays at 200&nbsp;mm along the whole
+    channel and only the depth changes, down to 30&nbsp;mm in the test section. The
+    smoke streaks therefore run in a single plane and stay sharp through the window.
+    The airfoil spans the test section from wall to wall, so there are no wingtips and
+    the flow around it is close to two-dimensional — the same case XFOIL simulates,
+    the tool I used for the <a href="/projects/rc-plane">RC plane</a> and to check
+    <a href="/projects/airfoil-ai">Airfoil AI</a>.
+  </p>
+
+  <figure>
+    <img src="/images/wind-tunnel/tunnel-cad.png" alt="CAD model of the wind tunnel, from the rounded inlet on the left to the fan mount on the right">
+    <figcaption>The CAD model. Air enters through the inlet on the left and passes the settling chamber, contraction, test section and diffuser on its way to the fan.</figcaption>
+  </figure>
+
+  <h2>How it works</h2>
+  <p>
+    <strong>The channel.</strong> It is an open-circuit suction tunnel: the fan sits at
+    the far end and pulls room air through the whole channel, so the swirl it creates
+    leaves the tunnel instead of passing through the test section. A rounded inlet
+    leads into the settling chamber, where a honeycomb of drinking straws straightens
+    the flow and fine screens break up the eddies. The smoke rake goes behind the last
+    screen — in front of it, the screens would break the smoke streaks up. The
+    contraction then speeds the air up and evens it out, and the diffuser slows it
+    down again in front of the fan.
+  </p>
+  <p>
+    <strong>Design rules.</strong> I chose the test section — 200 × 30 × 230&nbsp;mm,
+    for an airfoil with a 50&nbsp;mm chord — and the rest of the tunnel is sized from
+    it using design rules for small low-speed wind tunnels from the literature. The
+    most complex part is the contraction. Its walls follow a fifth-order polynomial,
+    the shape that came out best in a NASA report on contraction design. It has zero
+    slope and zero curvature at both ends, so the wall blends into the settling
+    chamber and the test section without a kink where the flow could separate.
+  </p>
+  <p>
+    <strong>Electronics.</strong> An ESP32 reads a potentiometer and sets the speed of
+    a 120&nbsp;mm Delta AFB1212SHE fan through its PWM input, with a 330&nbsp;Ω
+    resistor on the signal line — a cheap precaution in front of an expensive fan.
+    A single 12&nbsp;V, 3&nbsp;A supply powers the fan directly and the ESP32 through
+    a 5&nbsp;V step-down converter, with a common ground for both.
+  </p>
+
+  <figure>
+    <img src="/images/wind-tunnel/fan-control.webp" alt="Fan control prototype on a breadboard with the 120 mm fan, step-down converter, potentiometer and ESP32">
+    <figcaption>The fan control prototype: the Delta fan, the step-down converter, and the potentiometer and ESP32 on a breadboard.</figcaption>
+  </figure>
+
+  <p>
+    One finding from testing the prototype: 0&nbsp;% on the potentiometer does not
+    mean stopped. The fan keeps turning slowly even with the PWM duty cycle at zero —
+    a property of the fan, not a bug in the code — so the tunnel gets a main power
+    switch.
+  </p>
+
+  <h2>Status — November 2026</h2>
+  <p>
+    The CAD model and the fan control prototype are done, and building the tunnel is
+    the current step. The plan from here:
+  </p>
+  <ul>
+    <li>Building the tunnel — November 2026</li>
+    <li>Finishing the electronics, including the pressure sensor — December 2026</li>
+    <li>Final assembly and testing — January 2027</li>
+    <li>Technical documentation — February 2027</li>
+    <li>Submission — April 2027</li>
+  </ul>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="https://doi.org/10.1017/S0001924000031985" target="_blank">Mehta &amp; Bradshaw (1979)</a>
+      — design rules for small low-speed wind tunnels, the basis for sizing the tunnel.
+    </li>
+    <li><a href="https://ntrs.nasa.gov/api/citations/19890004382/downloads/19890004382.pdf" target="_blank">Bell &amp; Mehta (1988)</a>
+      — the NASA report on contraction design that the contraction shape comes from.
+    </li>
+  </ul>
+</main>
+
+<footer>
+  <p>Last updated November 2026 · Klatovy, Czech Republic</p>
+</footer>
+
+</body>
+</html>
